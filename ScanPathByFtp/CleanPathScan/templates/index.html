@@ -1,0 +1,150 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2><span style="color: red">3.</span>输入FTP信息</h2>
+  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+    <dl>
+      <dt style="margin-left: 1.5em;">IP:<input type="text" name="ip" id="ip" value="">
+
+      <dt style="margin-left: 0.7em;"><br/>Port:<input type="text" name="port" id="port" value="2121">
+      <dt style="margin-left: 0em;"><br/>Email:<input type="text" name="email" id="email" value="">
+
+      <dd><br/><input id="btnTest" type="button" onclick="doTest()" value="连接测试">
+      <input id="btnScan" disabled="disabled" type="button" onclick="doScan()" value="开始扫描">
+
+    </dl>
+<h4>注：扫描结束后（完成或中断），<br/>将发送邮件通知到Email地址<br/><span style="color: red">(限定@30.net邮箱)</span></h4>
+    <div id="divMsg" style="height:20px;width:15em; left:17em;top:-11em;position:relative;color: red">
+    </div>
+    <div style="height:20px;width:18em; left:17em;top:-19em;position:relative;">
+      <h2>操作步骤</h2>
+        <h4><span style="color: red">1.</span>手机连接WIFI:<span style="color: red"><b>GarbageScan</b></span></h4>
+      <h4><span style="color: red">2.</span>扫码下载安装手机FTP工具</h4>
+      <div id="div2Dcode">
+        <img style="width:10em; margin-left: 2em" src="{{ url_for('static', filename='image/2dcode.png') }}" />
+        <!-- <img style="width:10em; margin-left: 2em" src="{{ url_for('static', filename='image/2dcode3.png') }}" /> -->
+        <div style="margin-left: 2.5em">
+            <h4>或者<a target="_blank" href="http://wwwqa.30.net/files/vline.apk">点击这里下载</a></h4>
+        </div>
+      </div>
+
+    </div>
+    <script>
+        $(document).ready(function () {
+           GetCache();
+        });
+
+        function vali() {
+            $("#ip").removeClass("empty")
+            $("#port").removeClass("empty")
+            $("#email").removeClass("empty")
+
+            var result = true;
+
+            if(!$("#ip").val())
+            {
+                $("#ip").addClass("empty")
+                result = false;
+            }else{
+                var regIP = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+                result = regIP.test($("#ip").val());
+                if(!result){
+                    $("#ip").addClass("empty")
+                }
+            }
+
+            if(!$("#port").val())
+            {
+                $("#port").addClass("empty")
+                result = false;
+            }else{
+                var regPort =  /^([0-9]|[1-9]\d|[1-9]\d{2}|[1-9]\d{3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$/;
+                result = regPort.test($("#port").val());
+                if(!result){
+                    $("#port").addClass("empty")
+                }
+            }
+
+            if(!$("#email").val())
+            {
+                $("#email").addClass("empty")
+                result = false;
+            }else{
+                var regEmail = /^^\w+([-+.]\w+)*@[3][0][.][n][e][t]/;
+                result = regEmail.test($("#email").val());
+                if(!result){
+                    $("#email").addClass("empty")
+                }
+            }
+            return result;
+        }
+
+        function  doTest() {
+            if(vali()){
+                SaveCache()
+                _ip = $("#ip").val();
+                _port = $("#port").val();
+                _email = $("#email").val();
+                url = "/doTest";
+
+                $("#divMsg").text("测试连接中...");
+                $("#btnTest").attr("disabled","disabled");
+                $("#btnScan").attr("disabled","disabled");
+
+                $.post(url,
+                    {
+                        ip : _ip,
+                        port : _port,
+                        email:_email
+                    },function(data,status){
+                    $("#divMsg").text(eval("("+data+")").msg);
+                      $("#div2Dcode").hide();
+                      if(eval("("+data+")").result){
+                        $("#btnScan").removeAttr("disabled");
+                      }else{
+                          $("#btnTest").removeAttr("disabled");
+                      }
+                });
+            }
+        }
+
+        function  doScan() {
+            if(vali()){
+                SaveCache();
+                _ip = $("#ip").val();
+                _port = $("#port").val();
+                _email = $("#email").val();
+                url = "/doScan"
+                $("#btnTest").attr("disabled","disabled");
+                $("#btnScan").attr("disabled","disabled");
+                $.post(url,
+                    {
+                        ip : _ip,
+                        port : _port,
+                        email:_email
+                    },
+                    function(data,status){
+                      $("#divMsg").text(eval("("+data+")").msg);
+                      $("#div2Dcode").hide();
+                      if(!eval("("+data+")").result){
+                        $("#btnScan").removeAttr("disabled");
+                      }
+                });
+            }
+        }
+
+        function SaveCache() {
+            var storage = window.localStorage;
+            //存储到loaclStage
+            storage["ip"] = $("#ip").val();
+            storage["port"] = $("#port").val();
+            storage["email"] =  $("#email").val();
+        }
+
+        function GetCache() {
+            var storage = window.localStorage;
+            $("#ip").val(storage["ip"]);
+            $("#port").val(storage["port"]);
+            $("#email").val(storage["email"]);
+        }
+    </script>
+{% endblock %}

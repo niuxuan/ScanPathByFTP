@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+ <HEAD>
+  <TITLE> 获取硬盘上的所有驱动器,文件夹和文件 </TITLE>
+  <META NAME="Generator" CONTENT="EditPlus">
+  <META NAME="Author" CONTENT="">
+  <META NAME="Keywords" CONTENT="">
+  <META NAME="Description" CONTENT="">
+ </HEAD>
+
+<body>
+    <table>
+        <tr>
+            <td colspan=2 align="left">
+                <select id="fsDrivers" onchange="ChangeDrive(this)">
+                    <option>--请选择驱动器--</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                <select id="fsFolders" onchange="searchFiles()">
+                    <option>---请选择目录---</option>
+                </select>
+            </td>
+            <td valign="top">
+                <select size=20 id="fsFiles" style="width:200px;">
+                <option>---请选择文件---</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+</body>
+
+<script>
+function $(id)
+{
+     return (id.constructor == String) ? document.getElementById(id) : id;
+}
+function ChangeDrive(t)
+{
+    var index = t.selectedIndex;
+    if (index == 0)
+    {
+        var temp = document.createElement('OPTION');
+        temp.innerText = '---请选择目录---';
+        var o = $('fsFolders');
+        o.innerHTML = '';
+        o.appendChild(temp);
+    }
+    else
+    {
+        var ttmp = t.options[index].value + '\\\\';
+        var a = ShowFolderList(tmp);
+        var o = $('fsFolders');
+        o.innerHTML = '';
+        for(var i=0; i<a.length; i++)
+        {
+            var op = document.createElement('OPTION');
+            op.value = a[i];
+            op.innerText   = a[i];
+            o.appendChild(op);
+        }
+    }
+}
+function ShowFolderList(folderspec)
+{
+    var fso, f, fc, a;
+    fso = new ActiveXObject("Scripting.FileSystemObject");
+    f = fso.GetFolder(folderspec);
+    fc = new Enumerator(f.SubFolders);
+    a = new Array;
+    for (; !fc.atEnd(); fc.moveNext())
+    {
+       a[a.length] = fc.item();
+    }
+    return(a);
+}
+function getDrives()
+{
+    var fso, a, n, e, x;
+    fso = new ActiveXObject("Scripting.FileSystemObject");
+    e = new Enumerator(fso.Drives);
+    a = new Array;
+    for (; !e.atEnd(); e.moveNext())
+    {
+       x = e.item();
+       a[a.length] = x.DriveLetter;
+    }
+    return(a);
+}
+var a = getDrives();
+var o = $('fsDrivers');
+for(var i=0; i<a.length; i++) {
+     var op = document.createElement('OPTION');
+     op.value = a[i] + ':';
+     op.innerText   = a[i] + ':';
+     o.appendChild(op);
+}
+
+</script>
+
+
+
+<script>
+function searchFiles()
+{
+document.all.fsFiles.options.length = 1;//清空select只留第一行
+
+    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    var f = fso.GetFolder(document.all.fsFolders.value);
+    var fc = new Enumerator(f.files);
+    var s = "";
+    for (; !fc.atEnd(); fc.moveNext())
+    {
+        s += fc.item();
+        s += "<br/>";
+    }
+    fk = new Enumerator(f.SubFolders);
+
+var abc = "";
+
+var objSelect = document.all.fsFiles;
+
+    for (; !fk.atEnd(); fk.moveNext())//添加所有文件夹名
+    {
+        //s += fk.item();
+        //s += "<br/>";
+
+        // 取得字段值
+        var strName = fk.item();
+        var strvalue = fk.item();
+        // 建立Option对象
+        var objOption = new Option(strName,strvalue);
+
+        objSelect.options[objSelect.options.length] = objOption;
+    }
+
+
+    var txt;
+    fso = new ActiveXObject("Scripting.FileSystemObject");
+
+    fldr = fso.GetFolder(f);
+
+    fc = new Enumerator(fldr.files);
+
+    for(; !fc.atEnd(); fc.moveNext())//添加所有文件
+    {
+        s=fc.item();   //取文件对象
+        //s是文件名
+
+        f = fso.GetFile(s);//f是文件名,过滤掉文件夹名
+
+        // 添加选项
+        var objSelect = document.all.fsFiles;
+
+        // 取得字段值
+        var strName = f;
+        var strvalue = f;
+        // 建立Option对象
+        var objOption = new Option(strName,strvalue);
+
+        objSelect.options[objSelect.options.length] = objOption;
+    }
+}
+</script>
+
+</HTML>
